@@ -9,14 +9,20 @@ Usage:
     ./dawnofthedusk.py 'Edmonton AB' 2026-11-17
     ./dawnofthedusk.py --help
 
-Requires dawnofthedusk.db (see build_db.py).
+Requires dawnofthedusk.db (see build_db.py) — resolved relative to this script.
 Times are NRC local *standard* time (no DST is applied).
 """
 import argparse
+import os
 import re
 import sqlite3
 import sys
 from datetime import date, datetime, timedelta
+
+# ---------- paths ------------------------------------------------------------
+
+_SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+_DEFAULT_DB = os.path.join(_SCRIPT_DIR, 'dawnofthedusk.db')
 
 # ---------- date parsing -----------------------------------------------------
 
@@ -118,7 +124,8 @@ def main():
     )
     ap.add_argument('args', nargs='+', metavar='CITY... [DATE]',
                     help='city (optionally with province), then optional date')
-    ap.add_argument('--db', default='dawnofthedusk.db')
+    ap.add_argument('--db', default=_DEFAULT_DB,
+                    help=f'path to SQLite DB (default: {_DEFAULT_DB})')
     ap.add_argument('--short', action='store_true',
                     help="print 'CITY,CIVIL_START,CIVIL_END' in 12h (no AM/PM)")
     a = ap.parse_args()
@@ -182,7 +189,6 @@ def main():
             suffix = 'AM' if h < 12 else 'PM'
             h12 = h % 12 or 12
             return f"{h12:02d}:{m:02d}"
-            # (Using %I:%M equivalent: zero-padded 12-hour)
 
         print(f"{site_key},{to_12h(dawn)},{to_12h(dusk)}")
         return
